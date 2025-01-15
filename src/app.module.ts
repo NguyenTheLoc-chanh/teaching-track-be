@@ -15,6 +15,7 @@ import { Allowance } from '@/modules/allowances/schemas/allowance.schema';
 import { AllowanceDetail } from '@/modules/allowance-details/schemas/allowance-detail.schema';
 import { Coefficient } from '@/modules/coefficients/schemas/coefficient.schema';
 import { CoefficientDetail } from '@/modules/coefficient_details/schemas/coefficient_detail.schema';
+import { AuthModule } from '@/auth/auth.module';
 
 @Module({
   imports: [
@@ -37,7 +38,8 @@ import { CoefficientDetail } from '@/modules/coefficient_details/schemas/coeffic
         uri: configService.get<string>('MONGODB_URI'),
       }),
       inject: [ConfigService],
-    })
+    }),
+    AuthModule
   ],
   controllers: [AppController],
   providers: [AppService],

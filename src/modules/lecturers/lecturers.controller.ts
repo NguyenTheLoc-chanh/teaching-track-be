@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { LecturersService } from './lecturers.service';
 import { CreateLecturerDto } from './dto/create-lecturer.dto';
 import { UpdateLecturerDto } from './dto/update-lecturer.dto';
@@ -13,8 +13,12 @@ export class LecturersController {
   }
 
   @Get()
-  findAll() {
-    return this.lecturersService.findAll();
+  async findAll(
+    @Query() query: string,
+    @Query() current: string,
+    @Query() pageSize: string,
+  ) {
+    return this.lecturersService.findAll(query, +current, +pageSize);
   }
 
   @Get(':id')
@@ -22,13 +26,13 @@ export class LecturersController {
     return this.lecturersService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateLecturerDto: UpdateLecturerDto) {
-    return this.lecturersService.update(+id, updateLecturerDto);
+  @Patch()
+  update(@Body() updateLecturerDto: UpdateLecturerDto) {
+    return this.lecturersService.update(updateLecturerDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.lecturersService.remove(+id);
+    return this.lecturersService.remove(id);
   }
 }

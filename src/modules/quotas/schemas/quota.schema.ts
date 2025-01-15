@@ -8,6 +8,7 @@ export type QuotaDocument = HydratedDocument<Quota>;
 export class Quota {
     @Prop()
     quota_id: string; // Mã định mức
+    
     @Prop()
     quota_name: string;
 

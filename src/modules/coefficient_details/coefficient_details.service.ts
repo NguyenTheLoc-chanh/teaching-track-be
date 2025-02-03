@@ -1,11 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import { CreateCoefficientDetailDto } from './dto/create-coefficient_detail.dto';
 import { UpdateCoefficientDetailDto } from './dto/update-coefficient_detail.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { CoefficientDetail } from './schemas/coefficient_detail.schema';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class CoefficientDetailsService {
-  create(createCoefficientDetailDto: CreateCoefficientDetailDto) {
-    return 'This action adds a new coefficientDetail';
+  constructor(
+    @InjectModel(CoefficientDetail.name) private coefficientDetailModel: Model<CoefficientDetail>,
+  ) {}
+  async create(createCoefficientDetailDto: CreateCoefficientDetailDto) {
+    const {coefficient_id, teaching_log_id} = createCoefficientDetailDto;
+
+    const coefficientDetail = await this.coefficientDetailModel.create({
+      coefficient_id, teaching_log_id
+    })
+    return {
+      _id: coefficientDetail._id
+    };
   }
 
   findAll() {

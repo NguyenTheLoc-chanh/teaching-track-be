@@ -6,13 +6,13 @@ export type QuotaDocument = HydratedDocument<Quota>;
 // Bảng định mức thanh toán
 @Schema({ timestamps: true })
 export class Quota {
-    @Prop()
+    @Prop({ required: true })
     quota_id: string; // Mã định mức
     
-    @Prop()
+    @Prop({ required: true })
     quota_name: string;
 
-    @Prop()
+    @Prop({ required: true })
     value: string;
 }
 

@@ -8,6 +8,7 @@ export type SubjectDocument = HydratedDocument<Subject>
 export class Subject {
     @Prop()
     subject_id: string; // Mã môn học
+    
     @Prop()
     name: string;
 

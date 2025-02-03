@@ -6,31 +6,34 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { SubjectsModule }  from '@/modules/subjects/subjects.module';
 import { LecturersModule } from '@/modules/lecturers/lecturers.module';
-import { Quota } from '@/modules/quotas/schemas/quota.schema';
-import { Payrollsheet } from '@/modules/payrollsheet/schemas/payrollsheet.schema';
-import { Classroom } from '@/modules/classrooms/schemas/classroom.schema';
-import { Timetable } from '@/modules/timetables/schemas/timetable.schema';
-import { TeachingLog } from '@/modules/teaching_logs/schemas/teaching_log.schema';
-import { Allowance } from '@/modules/allowances/schemas/allowance.schema';
-import { AllowanceDetail } from '@/modules/allowance-details/schemas/allowance-detail.schema';
-import { Coefficient } from '@/modules/coefficients/schemas/coefficient.schema';
-import { CoefficientDetail } from '@/modules/coefficient_details/schemas/coefficient_detail.schema';
 import { AuthModule } from '@/auth/auth.module';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { JwtAuthGuard } from './auth/passport/jwt-auth.guard';
+import { TransformInterceptor } from './core/transform.interceptor';
+import { QuotasModule } from '@/modules/quotas/quotas.module';
+import { PayrollsheetModule } from '@/modules/payrollsheet/payrollsheet.module';
+import { ClassroomsModule } from '@/modules/classrooms/classrooms.module';
+import { TimetablesModule } from '@/modules/timetables/timetables.module';
+import { TeachingLogsModule } from '@/modules/teaching_logs/teaching_logs.module';
+import { AllowancesModule } from '@/modules/allowances/allowances.module';
+import { AllowanceDetailsModule } from '@/modules/allowance-details/allowance-details.module';
+import { CoefficientsModule } from '@/modules/coefficients/coefficients.module';
+import { CoefficientDetailsModule } from '@/modules/coefficient_details/coefficient_details.module';
 
 @Module({
   imports: [
     UsersModule, 
     SubjectsModule,
     LecturersModule,
-    Quota,
-    Payrollsheet,
-    Classroom,
-    Timetable,
-    TeachingLog,
-    Allowance,
-    AllowanceDetail,
-    Coefficient,
-    CoefficientDetail,
+    QuotasModule,
+    PayrollsheetModule,
+    ClassroomsModule,
+    TimetablesModule,
+    TeachingLogsModule,
+    AllowancesModule,
+    AllowanceDetailsModule,
+    CoefficientsModule,
+    CoefficientDetailsModule,
     ConfigModule.forRoot({isGlobal: true,}),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
@@ -42,6 +45,16 @@ import { AuthModule } from '@/auth/auth.module';
     AuthModule
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TransformInterceptor,
+    },
+  ],
 })
 export class AppModule {}

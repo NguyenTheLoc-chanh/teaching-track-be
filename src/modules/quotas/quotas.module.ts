@@ -5,7 +5,9 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Quota, QuotaSchema } from './schemas/quota.schema';
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: Quota.name, schema: QuotaSchema }])],
+  imports: [
+    MongooseModule.forFeature([{ name: Quota.name, schema: QuotaSchema }
+  ])],
   controllers: [QuotasController],
   providers: [QuotasService],
 })

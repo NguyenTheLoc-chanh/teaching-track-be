@@ -1,11 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import { CreateTimetableDto } from './dto/create-timetable.dto';
 import { UpdateTimetableDto } from './dto/update-timetable.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Timetable } from './schemas/timetable.schema';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class TimetablesService {
-  create(createTimetableDto: CreateTimetableDto) {
-    return 'This action adds a new timetable';
+  constructor (
+      @InjectModel(Timetable.name) private allowanceModel: Model<Timetable>,
+  ){}
+  async create(createTimetableDto: CreateTimetableDto) {
+    const {week, semester, academic_year} = createTimetableDto;
+
+    const timetable = await this.allowanceModel.create({
+        week, semester, academic_year
+    })
+    return {
+      _id: timetable._id
+    };
   }
 
   findAll() {

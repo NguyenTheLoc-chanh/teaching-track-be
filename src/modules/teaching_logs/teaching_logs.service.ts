@@ -6,6 +6,8 @@ import { TeachingLog } from './schemas/teaching_log.schema';
 import { Model } from 'mongoose';
 import aqp from 'api-query-params';
 import { Classroom } from '../classrooms/schemas/classroom.schema';
+import * as dayjs from 'dayjs';
+
 
 @Injectable()
 export class TeachingLogsService {
@@ -79,6 +81,24 @@ export class TeachingLogsService {
   }
 
 
+  // Lấy ra số tuần
+  async getWeeks() {
+    const startDate = dayjs('2024-01-01', 'YYYY-MM-DD'); // Ngày bắt đầu
+    const numberOfWeeks = 20;
+    let weeks = [];
+
+    for (let i = 0; i < numberOfWeeks; i++) {
+        const startOfWeek = startDate.add(i * 7, 'day');
+        const endOfWeek = startOfWeek.add(6, 'day');
+
+        weeks.push({
+            label: `Tuần ${i + 1} (${startOfWeek.format('MM/DD/YYYY')} - ${endOfWeek.format('MM/DD/YYYY')})`,
+            value: i + 1,
+        });
+    }
+
+    return weeks;
+  }
 
   findOne(id: number) {
     return `This action returns a #${id} teachingLog`;

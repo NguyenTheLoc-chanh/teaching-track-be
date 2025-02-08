@@ -33,6 +33,12 @@ export class TeachingLogsController {
     return this.teachingLogsService.findTeachingLogsByLecturerId(query,lecturer_id);
   }
 
+  // Lấy ra số tuần
+  @Get('weeks')
+  async getWeeks() {
+      return this.teachingLogsService.getWeeks();
+  }
+  
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.teachingLogsService.findOne(+id);

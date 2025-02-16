@@ -38,15 +38,27 @@ export class TeachingLogsController {
   async getWeeks() {
       return this.teachingLogsService.getWeeks();
   }
-  
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.teachingLogsService.findOne(+id);
+
+  @Patch(':id/confirm')
+  async confirmTeachingLog(
+    @Param('id') _id: string,
+    @Body() updateData: {students_present: number, content: string}
+  ) {
+    return this.teachingLogsService.confirmTeachingLog(_id, updateData);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTeachingLogDto: UpdateTeachingLogDto) {
-    return this.teachingLogsService.update(+id, updateTeachingLogDto);
+  @Patch(':id/confirmleave')
+  async confirmLeaveNoticeTeachingLog(@Param('id') _id: string)
+  {
+    console.log("ID:",_id);
+    return this.teachingLogsService.confirmLeaveNoticeTeachingLog(_id);
+  }
+
+  @Patch(':id/updatesessionold')
+  async updateTeachingLogOld(@Param('id') _id: string)
+  {
+    console.log("ID:",_id);
+    return this.teachingLogsService.updateTeachingLogOld(_id);
   }
 
   @Delete(':id')

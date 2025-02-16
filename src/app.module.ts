@@ -19,6 +19,7 @@ import { AllowancesModule } from '@/modules/allowances/allowances.module';
 import { AllowanceDetailsModule } from '@/modules/allowance-details/allowance-details.module';
 import { CoefficientsModule } from '@/modules/coefficients/coefficients.module';
 import { CoefficientDetailsModule } from '@/modules/coefficient_details/coefficient_details.module';
+import { SalariesModule } from '@/modules/salaries/salaries.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { CoefficientDetailsModule } from '@/modules/coefficient_details/coeffici
     AllowanceDetailsModule,
     CoefficientsModule,
     CoefficientDetailsModule,
+    SalariesModule,
     ConfigModule.forRoot({isGlobal: true,}),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
@@ -42,7 +44,8 @@ import { CoefficientDetailsModule } from '@/modules/coefficient_details/coeffici
       }),
       inject: [ConfigService],
     }),
-    AuthModule
+    AuthModule,
+    SalariesModule
   ],
   controllers: [AppController],
   providers: [

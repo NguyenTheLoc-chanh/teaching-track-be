@@ -33,7 +33,7 @@ export class TeachingLog {
     @Prop({default: 0})
     students_present: number; // Số sinh viên có mặt
 
-    @Prop({ required: true, enum: ['Taught', 'Pending', 'Cancelled'], default: 'Pending' })
+    @Prop({ required: true, enum: ['Confirmed', 'Pending', 'Cancelled','Updated'], default: 'Pending' })
     session_status: string; // Trạng thái buổi họ
 }
 

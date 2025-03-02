@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, Request } from '@nestjs/common';
 import { LecturersService } from './lecturers.service';
 import { CreateLecturerDto } from './dto/create-lecturer.dto';
 import { UpdateLecturerDto } from './dto/update-lecturer.dto';
+import { JwtAuthGuard } from '@/auth/passport/jwt-auth.guard';
 
 @Controller('lecturers')
 export class LecturersController {
@@ -19,6 +20,15 @@ export class LecturersController {
     @Query() pageSize: string,
   ) {
     return this.lecturersService.findAll(query, +current, +pageSize);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('infolecturer')
+  async getLecturer(
+    @Request() req
+  ){
+    const lecturerId = req.user.lecturer_id;
+    return this.lecturersService.getLecturer(lecturerId);
   }
 
   @Get(':id')

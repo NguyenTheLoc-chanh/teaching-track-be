@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateLecturerDto } from './dto/create-lecturer.dto';
 import { UpdateLecturerDto } from './dto/update-lecturer.dto';
 import aqp from 'api-query-params';
@@ -36,6 +36,13 @@ export class LecturersService {
       return {results, totalPages};
   }
 
+  async getLecturer(id: string): Promise<any>{
+    const lecturer = await this.lecturerModel.findOne({lecturer_id: id}).lean();
+    if (!lecturer) {
+        throw new NotFoundException("Không tìm thấy dữ liệu lương!");
+    }
+    return lecturer;
+  }
   findOne(id: number) {
     return `This action returns a #${id} lecturer`;
   }

@@ -11,8 +11,8 @@ export class Lecturer {
     @Prop()
     lecturer_id: string; // Mã giảng viên
 
-    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Quota.name })
-    quota_id: mongoose.Schema.Types.ObjectId;
+    @Prop({ required: true })
+    quota_id: string;
 
     @Prop()
     full_name: string;

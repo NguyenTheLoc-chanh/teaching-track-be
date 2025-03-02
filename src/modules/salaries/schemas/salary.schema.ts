@@ -9,10 +9,7 @@ export class Salary {
     lecturer_id: string;
   
     @Prop({ required: true })
-    semester: string; // Học kỳ
-  
-    @Prop({ required: true })
-    academic_year: string; // Năm học
+    timetable_id: string; // Mã thời khóa biểu
   
     @Prop({ required: true })
     total_salary: number;

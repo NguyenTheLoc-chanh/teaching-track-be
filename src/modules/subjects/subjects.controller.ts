@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { SubjectsService } from './subjects.service';
 import { CreateSubjectDto } from './dto/create-subject.dto';
 import { UpdateSubjectDto } from './dto/update-subject.dto';
@@ -12,6 +12,15 @@ export class SubjectsController {
     return this.subjectsService.create(createSubjectDto);
   }
 
+  @Get('by-class-ids')
+  async getSubjectsByClassIds(@Query('classIds') classIds: string) {
+    // Chuyển đổi classIds từ chuỗi sang mảng
+    const classIdArray = classIds.split(',');
+
+    const subjects = await this.subjectsService.getAllSubjectByClassId(classIdArray);
+    return { statusCode: 200, data: subjects };
+  }
+  
   @Get()
   findAll() {
     return this.subjectsService.findAll();

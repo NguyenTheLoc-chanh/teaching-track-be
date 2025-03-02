@@ -9,14 +9,11 @@ export type TeachingLogDocument = HydratedDocument<TeachingLog>;
 // Theo dõi giảng dạy
 @Schema({ timestamps: true })
 export class TeachingLog {
-    @Prop({ default: () => uuidv4() })
+    @Prop({ required: true , unique: true })
     teaching_log_id: string; // Mã bảng theo dõi giảng dạy
 
     @Prop({ required: true })
     class_id: string; // Mã lớp học (khóa ngoại)
-
-    @Prop({ required: true })
-    timetable_id: string; // Mã thời khóa biểu (khóa ngoại)
 
     @Prop({ required: true })
     session: string; // Ca học 

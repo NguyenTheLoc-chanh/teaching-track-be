@@ -31,6 +31,9 @@ export class Classroom {
   
     @Prop({ required: true, default: 0 })
     student_count: number; // Số lượng sinh viên
+
+    @Prop({ required: true })
+    timetable_id: string; // Mã thời khóa biểu (khóa ngoại)
 }
 
 export const ClassroomSchema = SchemaFactory.createForClass(Classroom);

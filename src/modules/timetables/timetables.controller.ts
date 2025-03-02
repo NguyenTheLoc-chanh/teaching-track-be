@@ -12,6 +12,11 @@ export class TimetablesController {
     return this.timetablesService.create(createTimetableDto);
   }
 
+  @Get('academic-years')
+  async getAcademicYears() {
+    return await this.timetablesService.getAcademicYears();
+  }
+
   @Get()
   findAll() {
     return this.timetablesService.findAll();

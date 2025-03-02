@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { AllowanceDetailsService } from './allowance-details.service';
 import { CreateAllowanceDetailDto } from './dto/create-allowance-detail.dto';
 import { UpdateAllowanceDetailDto } from './dto/update-allowance-detail.dto';
+import { Schema } from 'mongoose';
 
 @Controller('allowance-details')
 export class AllowanceDetailsController {
@@ -10,6 +11,28 @@ export class AllowanceDetailsController {
   @Post()
   create(@Body() createAllowanceDetailDto: CreateAllowanceDetailDto) {
     return this.allowanceDetailsService.create(createAllowanceDetailDto);
+  }
+
+  @Get('determine/:trackingId')
+  async determineAllowance(
+    @Param('trackingId') trackingId: string,
+    @Query('date') date: string 
+  ) {
+    console.log("Received date from query:", date);
+    const dateObj = new Date(date);
+    
+    if (isNaN(dateObj.getTime())) {
+      throw new Error('Invalid date format');
+    }
+    const dateStr = dateObj.toISOString();
+    return this.allowanceDetailsService.determineAllowance(trackingId, dateStr);
+  }
+
+  @Patch('update')
+  async updateAllowanceDetail(
+    @Body() dataAllowances: { allowanceIds: string[], trackingId: string}
+  ) {
+    return this.allowanceDetailsService.updateAllowanceDetail(dataAllowances);
   }
 
   @Get()

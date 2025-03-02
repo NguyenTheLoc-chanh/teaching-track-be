@@ -8,17 +8,24 @@ import { Model } from 'mongoose';
 @Injectable()
 export class TimetablesService {
   constructor (
-      @InjectModel(Timetable.name) private allowanceModel: Model<Timetable>,
+      @InjectModel(Timetable.name) private timetableModel: Model<Timetable>,
   ){}
   async create(createTimetableDto: CreateTimetableDto) {
     const {week, semester, academic_year} = createTimetableDto;
 
-    const timetable = await this.allowanceModel.create({
+    const timetable = await this.timetableModel.create({
         week, semester, academic_year
     })
     return {
       _id: timetable._id
     };
+  }
+  async getAcademicYears(): Promise<{ label: string; value: string }[]> {
+    const academicYears = await this.timetableModel.distinct('academic_year');
+    return academicYears.map((year) => ({
+      label: year,
+      value: year,
+    }));
   }
 
   findAll() {

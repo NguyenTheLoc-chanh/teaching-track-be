@@ -23,4 +23,7 @@ export class CreateClassroomDto {
   
     @IsNotEmpty({message: "Số lượng sinh viên không được để trống!"})
     student_count: number; // Số lượng sinh viên
+
+    @IsNotEmpty({message: "Mã thời khóa biểu không được để trống!"})
+    timetable_id: string; // Mã thời khóa biểu (khóa ngoại)
 }

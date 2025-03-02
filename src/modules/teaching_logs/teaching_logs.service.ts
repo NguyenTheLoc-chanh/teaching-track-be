@@ -19,10 +19,10 @@ export class TeachingLogsService {
   ) {}
 
   async create(createTeachingLogDto: CreateTeachingLogDto) {
-    const {class_id, timetable_id, session, date,lesson_count} = createTeachingLogDto;
+    const {teaching_log_id, class_id, session, date,lesson_count} = createTeachingLogDto;
 
     const teachingLog = await this.teachingLogModel.create({
-      class_id, timetable_id, session, date,lesson_count
+      teaching_log_id,class_id, session, date,lesson_count
     })
     return {
       _id: teachingLog._id

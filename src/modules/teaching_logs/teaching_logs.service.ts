@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTeachingLogDto } from './dto/create-teaching_log.dto';
-import { UpdateTeachingLogDto } from './dto/update-teaching_log.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { TeachingLog } from './schemas/teaching_log.schema';
 import { Model, Types, ObjectId } from 'mongoose';
@@ -116,7 +115,6 @@ export class TeachingLogsService {
     }
   }
 
-
   // Lấy ra số tuần
   async getWeeks() {
     const startDate = dayjs('2024-12-23', 'YYYY-MM-DD'); // Ngày bắt đầu
@@ -145,15 +143,19 @@ export class TeachingLogsService {
     if (!teachingLog) throw new NotFoundException("Teaching Log not found");
 
     teachingLog.session_status = "Confirmed";
+    console.log("Session:", teachingLog.session_status);
+    
     if (updateData.students_present !== undefined) {
       teachingLog.students_present = updateData.students_present;
     }
     if (updateData.content !== undefined) {
       teachingLog.content = updateData.content;
     }
-
-    await teachingLog.save();
-
+    try {
+      await teachingLog.save();
+    } catch (error) {
+      console.error("ERROR during save:", error);
+    }
     return { message: "Buổi học đã được xác nhận!" };
   }
 

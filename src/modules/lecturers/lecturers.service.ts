@@ -49,10 +49,11 @@ export class LecturersService {
 
   async update(updateLecturerDto: UpdateLecturerDto) {
     return await this.lecturerModel.updateOne(
-      {_id: updateLecturerDto._id}, 
-      {...updateLecturerDto}
+      { _id: updateLecturerDto._id }, 
+      { $set: { ...updateLecturerDto } } // Chỉ cập nhật các trường có giá trị
     );
   }
+
 
   async remove(_id: string) {
     // Check id

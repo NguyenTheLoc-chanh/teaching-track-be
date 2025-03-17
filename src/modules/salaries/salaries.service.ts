@@ -12,6 +12,7 @@ import { Lecturer } from '../lecturers/schemas/lecturer.schema';
 import { Subject } from '../subjects/schemas/subject.schema';
 import { Timetable } from '../timetables/schemas/timetable.schema';
 import { Allowance } from '../allowances/schemas/allowance.schema';
+import { AllowanceDetailsService } from '../allowance-details/allowance-details.service';
 
 @Injectable()
 export class SalariesService {
@@ -25,6 +26,7 @@ export class SalariesService {
         @InjectModel(Subject.name) private subjectModel: Model<Subject>,
         @InjectModel(Timetable.name) private timetableModel: Model<Timetable>,
         @InjectModel(Allowance.name) private allowanceModel: Model<Allowance>,
+        private readonly allowanceDetailsService: AllowanceDetailsService,
   ) {}
   
   // Hệ số lớp dựa trên số lượng sinh viên
@@ -91,6 +93,10 @@ export class SalariesService {
   
     for (const cls of classes) {
       const teachingLogs = await this.teachingLogModel.find({ class_id: cls.class_id }).lean();
+      if (!teachingLogs || teachingLogs.length === 0) {
+        console.warn(`Không có teaching logs cho lớp ${cls.class_id}, bỏ qua lớp này.`);
+        continue; // Bỏ qua lớp này và tiếp tục vòng lặp
+      }
       let teachingSalary = 0;
       let gradingAllowance = this.calculateGradingAllowance(cls.student_count);
       let travelAllowance = 0;
@@ -100,16 +106,30 @@ export class SalariesService {
       // Tính tiền giảng dạy lý thuyết
       const subject = await this.subjectModel.findOne({ subject_id: cls.subject_id }).lean();
       if (!classes.length) return { message: 'Không có môn học nào!' };
+      const lessonData = await this.allowanceDetailsService.calculateMinimumLessons(teachingLogs[0].teaching_log_id,lecturerId);
+      // Kiểm tra nếu lessonData hợp lệ trước khi truy cập thuộc tính
+      if (!lessonData || !lessonData.min_lessons_breakdown) {
+        console.error(`Không tìm thấy dữ liệu bài giảng cho giảng viên ${lecturerId}`);
+        return { message: 'Không có dữ liệu bài giảng!' };
+      }
 
-      let nfCredit = subject.nfCredit * 15;
+      let baseClassId = cls.class_id.replace(/_TH$/, "_LT");
 
-      let baseClassId = cls.class_id.replace(/(_TH|_LT)$/, "");
+      // Tìm thông tin lớp trong min_lessons_breakdown
+      const classInfo = lessonData?.min_lessons_breakdown.find(cl => cl.class_id === baseClassId);
+
+      if (!classInfo) {
+        console.error(`Không tìm thấy thông tin lớp ${baseClassId} trong dữ liệu`);
+        return { message: `Không tìm thấy thông tin lớp ${baseClassId}` };
+      }
+
+      let nfCredit = classInfo.min_lessons;
       if (cls.class_id.endsWith("_TH")) {
         let ltClassSalary = classSalaryMap.get(baseClassId);
         if (!ltClassSalary) {
           // Nếu chưa có lớp LT, khởi tạo trước với giá trị mặc định
           ltClassSalary = {
-              class_id: baseClassId + "_LT",
+              class_id: baseClassId,
               teachingSalary: 0,
               gradingAllowance: 0,
               travelAllowance: 0,
@@ -128,7 +148,7 @@ export class SalariesService {
       }else{
         // Nếu là lớp lý thuyết và có lớp thực hành, giảm 1 tín chỉ
         if (classHasPractice.has(cls.class_id)) {
-          nfCredit = (subject.nfCredit - 1) * 15;
+          nfCredit = nfCredit;
         }
         teachingSalary += this.calculateTeachingSalary(nfCredit, cls.student_count, parseInt(rate.value, 10));
       }
@@ -293,6 +313,9 @@ export class SalariesService {
       allowance_id: { $in: allowanceIds }
     }).lean();
 
+    const LessonData = await this.allowanceDetailsService.calculateMinimumLessons(teachingLog.teaching_log_id, lecturer.lecturer_id);
+    const classInfo = LessonData?.min_lessons_breakdown.find(cl => cl.class_id === classroom.class_id);
+
     const mergedAllowances = allowanceDetails.map((detail) => {
       const allowance = allowances.find((a) => a.allowance_id === detail.allowance_id);
       return {
@@ -309,12 +332,14 @@ export class SalariesService {
       quota_value: quota.value,
       student_count: classroom.student_count,
       nfCredit: subject.nfCredit,
+      min_lessons: classInfo.min_lessons,
       is_paid: salary.is_paid,
       total_salary: salary.total_salary,
       breakdown,
       allowances: mergedAllowances
     };
   }
+
   create(createSalaryDto: CreateSalaryDto) {
     return 'This action adds a new salary';
   }

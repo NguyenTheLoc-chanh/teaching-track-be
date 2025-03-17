@@ -1,8 +1,5 @@
-import { Classroom } from "@/modules/classrooms/schemas/classroom.schema";
-import { Timetable } from "@/modules/timetables/schemas/timetable.schema";
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import mongoose, { HydratedDocument } from "mongoose";
-import { v4 as uuidv4 } from 'uuid';
+import { HydratedDocument } from "mongoose";
 
 export type TeachingLogDocument = HydratedDocument<TeachingLog>;
 

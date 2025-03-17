@@ -4,10 +4,13 @@ import { CreateSalaryDto } from './dto/create-salary.dto';
 import { UpdateSalaryDto } from './dto/update-salary.dto';
 import { LocalAuthGuard } from '@/auth/passport/local-auth.guard';
 import { JwtAuthGuard } from '@/auth/passport/jwt-auth.guard';
+import { AllowanceDetailsService } from '../allowance-details/allowance-details.service';
 
 @Controller('salaries')
 export class SalariesController {
-  constructor(private readonly salariesService: SalariesService) {}
+  constructor(
+    private readonly salariesService: SalariesService,
+  ) {}
 
   @Post()
   create(@Body() createSalaryDto: CreateSalaryDto) {

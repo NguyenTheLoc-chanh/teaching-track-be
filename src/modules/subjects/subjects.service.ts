@@ -29,7 +29,7 @@ export class SubjectsService {
       class_id: { $in: classIds },
     }).lean();
 
-    const subjectIds = classrooms.map((cls) => cls.subject_id);
+    const subjectIds = classrooms.map((cls) => cls.subject_id.trim());
 
     const subjects = await this.subjectModel.find({
       subject_id: { $in: subjectIds },

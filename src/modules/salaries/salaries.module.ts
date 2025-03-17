@@ -1,3 +1,4 @@
+import { AllowanceDetailsModule } from './../allowance-details/allowance-details.module';
 import { Module } from '@nestjs/common';
 import { SalariesService } from './salaries.service';
 import { SalariesController } from './salaries.controller';
@@ -23,7 +24,9 @@ import { Allowance, AllowanceSchema } from '../allowances/schemas/allowance.sche
         { name: Subject.name, schema: SubjectSchema},
         { name: Timetable.name, schema: TimetableSchema},
         { name: Allowance.name, schema: AllowanceSchema},
-  ])],
+  ]),
+  AllowanceDetailsModule,
+  ],
   controllers: [SalariesController],
   providers: [SalariesService],
 })

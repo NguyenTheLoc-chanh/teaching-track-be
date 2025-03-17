@@ -15,8 +15,7 @@ export class SubjectsController {
   @Get('by-class-ids')
   async getSubjectsByClassIds(@Query('classIds') classIds: string) {
     // Chuyển đổi classIds từ chuỗi sang mảng
-    const classIdArray = classIds.split(',');
-
+    const classIdArray = classIds.split(',').map(id => decodeURIComponent(id).replace(/\?$/, '').trim());
     const subjects = await this.subjectsService.getAllSubjectByClassId(classIdArray);
     return { statusCode: 200, data: subjects };
   }

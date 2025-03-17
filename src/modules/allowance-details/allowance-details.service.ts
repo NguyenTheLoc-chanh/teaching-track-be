@@ -7,6 +7,8 @@ import { Date, Model } from 'mongoose';
 import { TeachingLog } from '../teaching_logs/schemas/teaching_log.schema';
 import * as dayjs from 'dayjs';
 import { Classroom } from '../classrooms/schemas/classroom.schema';
+import { Subject } from '../subjects/schemas/subject.schema';
+import { Lecturer } from '../lecturers/schemas/lecturer.schema';
 
 @Injectable()
 export class AllowanceDetailsService {
@@ -14,6 +16,8 @@ export class AllowanceDetailsService {
     @InjectModel(AllowanceDetail.name) private allowanceDetailModel: Model<AllowanceDetail>,
     @InjectModel(TeachingLog.name) private teachingLoglModel: Model<TeachingLog>,
     @InjectModel(Classroom.name) private classroomlModel: Model<Classroom>,
+    @InjectModel(Subject.name) private subjectModel: Model<Subject>,
+    @InjectModel(Lecturer.name) private lecturerModel: Model<Lecturer>,
   ) {}
 
   async create(createAllowanceDetailDto: CreateAllowanceDetailDto) {
@@ -72,25 +76,120 @@ export class AllowanceDetailsService {
   
         results.push(updatedAllowanceDetail);
       }
-      console.log("Kết quả:", results);
       return results;
     } catch (error) {
       throw new Error(`Error updating allowance detail: ${error.message}`);
     }
   }
 
+  async calculateMinimumLessons(teachingLogId: string, lecturerId: string) {
+    const teachingLogs = await this.teachingLoglModel.find({ teaching_log_id: teachingLogId }).lean();
   
-  async determineAllowance(teachinglog_id: string, date: string) {  
+    if (!teachingLogs.length) {
+      return { message: "Không tìm thấy dữ liệu giảng dạy" };
+    }
+  
+    // Lấy thông tin môn học từ classModel
+    const classIds = teachingLogs.map((log) => log.class_id);
+    const classes = await this.classroomlModel.find({ class_id: { $in: classIds } }).lean();
+  
+    // Lấy danh sách subject_id
+    const subjectIds = classes.map((cls) => cls.subject_id);
+    const subjects = await this.subjectModel.find({ subject_id: { $in: subjectIds } }).lean();
+  
+    // Tạo danh sách min_lessons
+    let minLessonsBreakdown = teachingLogs.map((log) => {
+      const classInfo = classes.find((cls) => cls.class_id === log.class_id);
+      const subjectInfo = subjects.find((sub) => sub.subject_id === classInfo?.subject_id);
+  
+      return {
+        class_id: log.class_id,
+        subject_id: subjectInfo?.subject_id || "Unknown",
+        subject_name: subjectInfo?.name || "Unknown",
+        credit: subjectInfo?.nfCredit || 0,
+        total_lessons: (subjectInfo?.nfCredit || 0) * 15, // 1 tín chỉ = 15 tiết
+        required_lessons: 0,
+        min_lessons: 0,
+      };
+    });
+  
+    // **Nhóm theo class_id để chỉ lấy lớp _LT**
+    const groupedByClassId = minLessonsBreakdown.reduce((acc, item) => {
+      const baseClassId = item.class_id.replace(/_(LT|TH)$/, ''); // Loại bỏ hậu tố _LT hoặc _TH
+      if (!acc[baseClassId]) {
+        acc[baseClassId] = [];
+      }
+      acc[baseClassId].push(item);
+      return acc;
+    }, {} as Record<string, any[]>);
+  
+    // **Chỉ lấy lớp _LT nếu có cả _LT và _TH**
+    minLessonsBreakdown = Object.values(groupedByClassId)
+      .map((group) => group.find((item) => item.class_id.endsWith('_LT')) || group[0])
+      .filter(Boolean); // Loại bỏ giá trị null
+    
+    // Lấy thông tin giảng viên
+    const lecturer = await this.lecturerModel.findOne({ lecturer_id: lecturerId }).lean();
+    
+    // **Tính tổng số tiết trong kỳ**
+    const totalLessons = minLessonsBreakdown.reduce((sum, item) => sum + item.total_lessons, 0);
+    const MIN_REQUIRED_LESSONS = lecturer.minofper / 2; // Số tiết tối thiểu trong kỳ
+    const excessLessons = totalLessons > MIN_REQUIRED_LESSONS ? totalLessons - MIN_REQUIRED_LESSONS : 0; // Số tiết vượt
+
+    // **Chia số tiết vượt theo số tín chỉ**
+    const totalCredits = minLessonsBreakdown.reduce((sum, item) => sum + item.credit, 0);
+    minLessonsBreakdown = minLessonsBreakdown.map((item) => {
+      const min_lessons = excessLessons > 0 ? Math.round((item.credit / totalCredits) * excessLessons) : 0;
+      return {
+        ...item,
+        min_lessons: min_lessons,
+        required_lessons: item.total_lessons - min_lessons, // Số tiết cần dạy của môn
+      };
+    });
+
+    return {
+      teaching_log_id: teachingLogId,
+      total_credits: totalCredits,
+      total_lessons: totalLessons,
+      excess_lessons: excessLessons,
+      min_lessons_breakdown: minLessonsBreakdown,
+    };
+  }
+
+  async determineAllowance(teachinglog_id: string, date: string,lecturerId: string) {
     try {
+      const lessonData = await this.calculateMinimumLessons(teachinglog_id, lecturerId);  
+
       const teachingLogs = await this.teachingLoglModel.find({ 
         teaching_log_id: teachinglog_id,
         date: date,
       }).lean();
+      const teachingLogConfirm = teachingLogs.filter(log => log.session_status === "Confirmed");
   
       if (!Array.isArray(teachingLogs) || teachingLogs.length === 0) {
         throw new Error('Teaching log not found');
       }
-  
+
+      if (!teachingLogConfirm.length) {
+        throw new Error('Không tìm thấy lịch giảng dạy hoặc chưa được xác nhận');
+      }
+
+      const classId = teachingLogs[0].class_id;
+      const normalizedClassId = classId.replace(/_TH$/, '_LT');
+      const totalLessonsTaught = teachingLogConfirm.reduce((sum, log) => sum + log.lesson_count, 0);
+      
+      // Lấy thông tin lớp học từ danh sách calculateMinimumLessons
+      const classInfo = lessonData?.min_lessons_breakdown.find(cls => cls.class_id === normalizedClassId);
+      if (!classInfo) {
+        throw new Error(`Không tìm thấy thông tin lớp học ${classId}`);
+      }
+
+      const requiredLessons = classInfo.required_lessons || 0;
+      let allowanceIds: string[] = [];
+      if (totalLessonsTaught < requiredLessons) {
+        return allowanceIds;
+      }
+
       const sessions = teachingLogs.map(log => log.session);
       const confirms = teachingLogs.map(state => state.session_status);
       const teachesMorning = sessions.includes("Sáng(T1-4)");
@@ -99,8 +198,7 @@ export class AllowanceDetailsService {
     const dateObj = new Date(date);
     const dayOfWeek = dateObj.getDay();
   
-      let allowanceIds: string[] = [];
-      const stateTeach = confirms.every(element => element === "Confirmed");
+    const stateTeach = confirms.every(element => element === "Confirmed");
   
       if (stateTeach) {
         if (dayOfWeek === 0 || dayOfWeek === 6) {
@@ -113,7 +211,6 @@ export class AllowanceDetailsService {
         allowanceIds.push("PC002");
         allowanceIds.push("PC001");
       }
-  
       return allowanceIds;
     } catch (error) {
       throw new Error(`Error determining allowance: ${error.message}`);

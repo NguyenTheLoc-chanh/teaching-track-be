@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request, Req, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './passport/local-auth.guard';
 import { Public, ResponseMessage, Roles } from '@/decorator/customize';
 import { CreateAuthDto } from './dto/create-auth.dto';
+import { JwtAuthGuard } from './passport/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -20,5 +21,15 @@ export class AuthController {
   @Public()
   getProfile(@Body() registerDto: CreateAuthDto) {
     return this.authService.handleRegister(registerDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  logout(@Req() req) {
+    const token = req.headers.authorization?.split(' ')[1]; // Lấy token từ header
+    if (!token) {
+      return { message: "Không có token hợp lệ" };
+    }
+    return this.authService.logout(token);
   }
 }

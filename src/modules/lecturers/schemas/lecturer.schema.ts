@@ -25,6 +25,12 @@ export class Lecturer {
 
     @Prop()
     title: string;
+
+    @Prop()
+    minofper: number;
+
+    @Prop()
+    address: string;
 }
 
 export const LecturerSchema = SchemaFactory.createForClass(Lecturer);

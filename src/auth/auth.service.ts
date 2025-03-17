@@ -7,9 +7,10 @@ import { CreateAuthDto } from './dto/create-auth.dto';
 
 @Injectable()
 export class AuthService {
+  private blacklistedTokens: Set<string> = new Set();
   constructor(
     private usersService: UsersService,
-    private jwtService: JwtService
+    private jwtService: JwtService,
   ) {}
 
   async validateUser(username: string, pass: string): Promise<any> {
@@ -37,5 +38,14 @@ export class AuthService {
 
   handleRegister = async (registerDto: CreateAuthDto) => {
     return await this.usersService.handleRegister(registerDto);
+  }
+
+  logout(token: string) {
+    this.blacklistedTokens.add(token);
+    return { message: "Logout thành công" };
+  }
+
+  isTokenBlacklisted(token: string): boolean {
+    return this.blacklistedTokens.has(token);
   }
 }

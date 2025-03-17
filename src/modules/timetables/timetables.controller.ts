@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { TimetablesService } from './timetables.service';
 import { CreateTimetableDto } from './dto/create-timetable.dto';
 import { UpdateTimetableDto } from './dto/update-timetable.dto';
@@ -15,6 +15,17 @@ export class TimetablesController {
   @Get('academic-years')
   async getAcademicYears() {
     return await this.timetablesService.getAcademicYears();
+  }
+
+  @Get('unique-timetable')
+  async getUniqueTeachingLogs(@Query("timetable_id") timetable_Id?: string){
+    return this.timetablesService.getUniqueTeachingLogs(timetable_Id);
+  }
+
+  @Get('semester-calendar')
+  async getSemesterCalendar(@Query("academic_year") academic_year?: string) {
+    const cleanAcademicYear = academic_year?.replace(/\?/g, "");
+    return await this.timetablesService.getSemesterCalendar(cleanAcademicYear);
   }
 
   @Get()

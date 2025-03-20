@@ -3,9 +3,8 @@ import { CreateLecturerDto } from './create-lecturer.dto';
 import { IsDateString, IsMongoId, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class UpdateLecturerDto {
-    @IsMongoId({message: "_id không hợp lệ!"})
-    @IsNotEmpty({message: "_id không được để trống!"})
-    _id: string;
+    @IsNotEmpty({message: "Mã giảng viên không được để trống!"})
+    lecturer_id: string;
 
     @IsOptional()
     @IsString({ message: "Họ và tên phải là chuỗi ký tự!" })

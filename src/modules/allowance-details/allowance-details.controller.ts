@@ -21,8 +21,6 @@ export class AllowanceDetailsController {
     @Param('trackingId') trackingId: string,
     @Query('date') date: string 
   ) {
-    console.log("ID:", req.user.lecturer_id);
-    console.log("Received date from query:", date);
     const dateObj = new Date(date);
     
     if (isNaN(dateObj.getTime())) {

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -82,23 +82,23 @@ export class UsersService {
     // Tìm user trước
     const user = await this.userModel.findOne({lecturer_id});
     if (!user) {
-      throw new Error('User not found');
+      throw new NotFoundException('Tên đăng nhập không tồn tại!');
     }
 
     // Tìm thông tin giảng viên thông qua lecturer_id
     const lecturer = await this.lecturerModel.findOne({ lecturer_id: user.lecturer_id });
     if (!lecturer) {
-      throw new Error('Lecturer not found');
+      throw new NotFoundException('Lecturer not found');
     }
 
     return {
       id: user._id,
       username: user.lecturer_id,
       password: user.password,
+      status: user.status,
       role: user.role,
       lecturer,
     };
-    //return (await this.userModel.findOne({lecturer_id}));
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {

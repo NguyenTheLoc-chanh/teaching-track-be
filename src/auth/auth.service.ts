@@ -1,5 +1,5 @@
 
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from "@/modules/users/users.service";
 import { comparePasswordHelper } from '@/helpers/util';
 import { JwtService } from '@nestjs/jwt';
@@ -15,10 +15,13 @@ export class AuthService {
 
   async validateUser(username: string, pass: string): Promise<any> {
     const user = await this.usersService.findByLecturerId(username);
-    const isValidPassword = await comparePasswordHelper(pass, user.password);
+    if (!user) {
+      throw new NotFoundException("Tên đăng nhập không tồn tại!");
+    }
 
-    if(!user || !isValidPassword){
-      return null;
+    const isValidPassword = await comparePasswordHelper(pass, user.password);
+    if (!isValidPassword) {
+      throw new UnauthorizedException("Mật khẩu không chính xác!");
     }
     return user;
   }

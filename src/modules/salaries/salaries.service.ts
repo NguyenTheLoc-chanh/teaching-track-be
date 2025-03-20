@@ -93,12 +93,13 @@ export class SalariesService {
   
     for (const cls of classes) {
       const teachingLogs = await this.teachingLogModel.find({ class_id: cls.class_id }).lean();
+      console.log("TeachingLogs:", teachingLogs);
       if (!teachingLogs || teachingLogs.length === 0) {
         console.warn(`Không có teaching logs cho lớp ${cls.class_id}, bỏ qua lớp này.`);
-        continue; // Bỏ qua lớp này và tiếp tục vòng lặp
+        continue;
       }
       let teachingSalary = 0;
-      let gradingAllowance = this.calculateGradingAllowance(cls.student_count);
+      let gradingAllowance = 0;
       let travelAllowance = 0;
       let mealAllowance = 0;
       let eveningMealAllowance = 0;
@@ -163,6 +164,9 @@ export class SalariesService {
         }
         if (allowance.allowance_id === 'PC003') {
           eveningMealAllowance += this.calculateEveningMealAllowance(allowance.quantity, 75000);
+        }
+        if(allowance.allowance_id === 'PC001'){
+          gradingAllowance += this.calculateGradingAllowance(allowance.quantity);
         }
       }
 

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, Request, NotFoundException } from '@nestjs/common';
 import { LecturersService } from './lecturers.service';
 import { CreateLecturerDto } from './dto/create-lecturer.dto';
 import { UpdateLecturerDto } from './dto/update-lecturer.dto';
@@ -37,9 +37,20 @@ export class LecturersController {
   }
 
   @Patch()
-  update(@Body() updateLecturerDto: UpdateLecturerDto) {
-    return this.lecturersService.update(updateLecturerDto);
+  async update(@Body() updateLecturerDto: UpdateLecturerDto) {
+      const updatedLecturer = await this.lecturersService.update(updateLecturerDto);
+      
+      if (!updatedLecturer) {
+          throw new NotFoundException("Giảng viên không tồn tại hoặc không thể cập nhật");
+      }
+      
+      return {
+          statusCode: 200,
+          message: "Cập nhật thành công",
+          data: updatedLecturer
+      };
   }
+
 
   @Delete(':id')
   remove(@Param('id') id: string) {

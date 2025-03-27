@@ -42,8 +42,9 @@ export class SubjectsService {
       subject_name: subjectMap.get(cls.subject_id) || "Không tìm thấy",
     }));
   }
-  findAll() {
-    return `This action returns all subjects`;
+  async findAll() {
+    const subjects = await this.subjectModel.find().lean();
+    return subjects;
   }
 
   findOne(id: number) {

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTeachingLogDto } from './dto/create-teaching_log.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { TeachingLog } from './schemas/teaching_log.schema';
@@ -18,14 +18,25 @@ export class TeachingLogsService {
   ) {}
 
   async create(createTeachingLogDto: CreateTeachingLogDto) {
-    const {teaching_log_id, class_id, session, date,lesson_count} = createTeachingLogDto;
+    const { teaching_log_id,class_id, session, date, credit } = createTeachingLogDto;
 
-    const teachingLog = await this.teachingLogModel.create({
-      teaching_log_id,class_id, session, date,lesson_count
-    })
-    return {
-      _id: teachingLog._id
-    };
+    const totalLessons = credit * 15;
+    const logsToCreate = [];
+    let currentDate = new Date(date);
+    for (let remainingLessons = totalLessons; remainingLessons > 0; remainingLessons -= 4) {
+      logsToCreate.push({
+          teaching_log_id,
+          class_id,
+          session,
+          date: new Date(currentDate), // Ngày dạy
+          lesson_count: Math.min(4, remainingLessons) // Giới hạn số tiết còn lại
+      });
+      // Ngày tiếp theo sẽ là cùng thứ đó của 1 tuần sau
+      currentDate.setDate(currentDate.getDate() + 7);
+  }
+  const createdLogs = await this.teachingLogModel.insertMany(logsToCreate);
+
+  return createdLogs.map(log => ({ _id: log._id }));
   }
 
   // Get all Teachinglog
@@ -143,7 +154,6 @@ export class TeachingLogsService {
     if (!teachingLog) throw new NotFoundException("Teaching Log not found");
 
     teachingLog.session_status = "Confirmed";
-    console.log("Session:", teachingLog.session_status);
     
     if (updateData.students_present !== undefined) {
       teachingLog.students_present = updateData.students_present;
@@ -188,5 +198,39 @@ export class TeachingLogsService {
 
   remove(id: number) {
     return `This action removes a #${id} teachingLog`;
+  }
+
+  async findAllTeachingLogByClassID(class_id: string)
+  {
+    if (!class_id || class_id.trim() === "") {
+      throw new BadRequestException("Class ID không được để trống!");
+    }
+    const teachingLogs = await this.teachingLogModel.find({class_id: class_id}).lean();
+    if (!teachingLogs) throw new NotFoundException("Không tìm thấy danh sách theo dõi giảng dạy");
+
+    return teachingLogs;
+  }
+
+  // Admin
+  async updateTeachingLog(
+    _id: string,
+    updateData: {date?: Date; session?: string}): Promise<{ message: string }> {
+    
+    const teachingLog = await this.teachingLogModel.findById({_id});
+
+    if (!teachingLog) throw new NotFoundException("Không có theo dõi giảng dạy trên!");
+    
+    if (updateData.date !== undefined) {
+      teachingLog.date = updateData.date;
+    }
+    if (updateData.session !== undefined) {
+        teachingLog.session = updateData.session;
+    }
+    try {
+      await teachingLog.save();
+    } catch (error) {
+      console.error("Xảy ra lỗi khi lưu:", error);
+    }
+    return { message: "Buổi học đã được cập nhật!" };
   }
 }

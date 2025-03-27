@@ -6,6 +6,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Classroom } from './schemas/classroom.schema';
 import { Model } from 'mongoose';
 import { Timetable } from '../timetables/schemas/timetable.schema';
+import { Subject } from '../subjects/schemas/subject.schema';
 
 @Injectable()
 export class ClassroomsService {
@@ -13,6 +14,7 @@ export class ClassroomsService {
     @InjectModel(Classroom.name) private classroomModel: Model<Classroom>,
     @InjectModel(Timetable.name) private timetableModel: Model<Timetable>,
     @InjectModel(Lecturer.name) private lecturerModel: Model<Lecturer>,
+    @InjectModel(Subject.name) private subjectModel: Model<Subject>,
   ) {}
 
   async create(createClassroomDto: CreateClassroomDto) {
@@ -22,7 +24,13 @@ export class ClassroomsService {
       class_id, subject_id, lecturer_id, room,timetable_id, start_time, end_time, student_count
     })
     return {
-      _id: classroom._id
+      _id: classroom._id,
+      class_id,
+      subject_id,
+      lecturer_id,
+      timetable_id,
+      room,
+      start_time,
     };
   }
 
@@ -51,8 +59,22 @@ export class ClassroomsService {
   }
 
 
-  findAll() {
-    return `This action returns all classrooms`;
+  async findAll(timetable_id: string) {
+    const classrooms = await this.classroomModel.find({ timetable_id: timetable_id }).lean();
+    // Lấy danh sách tất cả giảng viên và môn học
+    const lecturers = await this.lecturerModel.find().lean();
+    const subjects = await this.subjectModel.find().lean();
+    const classroomsWithDetails = classrooms.map(classroom => {
+      const lecturer = lecturers.find(l => l.lecturer_id.toString() === classroom.lecturer_id);
+      const subject = subjects.find(s => s.subject_id.toString() === classroom.subject_id);
+
+      return {
+          ...classroom,
+          lecturer_name: lecturer ? lecturer.full_name : "Không xác định",
+          subject_name: subject ? subject.name : "Không xác định",
+      };
+    });
+    return classroomsWithDetails;
   }
 
   findOne(id: number) {

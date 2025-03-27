@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTimetableDto } from './dto/create-timetable.dto';
 import { UpdateTimetableDto } from './dto/update-timetable.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -8,6 +8,7 @@ import { TeachingLog } from '../teaching_logs/schemas/teaching_log.schema';
 import { Classroom } from '../classrooms/schemas/classroom.schema';
 import { Subject } from '../subjects/schemas/subject.schema';
 import { Lecturer } from '../lecturers/schemas/lecturer.schema';
+import aqp from 'api-query-params';
 
 @Injectable()
 export class TimetablesService {
@@ -20,12 +21,23 @@ export class TimetablesService {
   ){}
   async create(createTimetableDto: CreateTimetableDto) {
     const {week, semester, academic_year} = createTimetableDto;
+    const existingTimetable = await this.timetableModel.findOne({ semester, academic_year });
 
+    if (existingTimetable) {
+      throw new ConflictException({
+        statusCode: 409,
+        message: "Thời khóa biểu cho năm học và học kỳ này đã tồn tại!",
+      });
+    }
+    
     const timetable = await this.timetableModel.create({
         week, semester, academic_year
     })
     return {
-      _id: timetable._id
+      statusCode: 201,
+      message: "Tạo thời khóa biểu thành công!",
+      _id: timetable._id,
+      week, semester, academic_year
     };
   }
   async getAcademicYears(): Promise<{ label: string; value: string }[]> {
@@ -97,9 +109,28 @@ export class TimetablesService {
 }
 
 
-  findAll() {
-    return `This action returns all timetables`;
-  }
+  async findAll(query: string, current: number, pageSize: number) {
+      const {filter, sort} = aqp(query);
+  
+      if(filter.current) delete filter.current;
+      if(filter.pageSize) delete filter.pageSize;
+  
+      if(!current) current = 1;
+      if(!pageSize) pageSize = 10;
+  
+      const totalItems = (await this.timetableModel.find(filter)).length;
+      const totalPages = Math.ceil(totalItems/ pageSize);
+      const skip  = (+current - 1) * (pageSize); 
+  
+      const results = await this.timetableModel
+      .find(filter)
+      .limit(pageSize)
+      .skip(skip)
+      //.select("-password")
+      .sort(sort as any);
+  
+      return {results, totalPages};
+    }
 
   findOne(id: number) {
     return `This action returns a #${id} timetable`;
@@ -109,7 +140,19 @@ export class TimetablesService {
     return `This action updates a #${id} timetable`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} timetable`;
-  }
+  async remove(id: string) {
+    const deletedTimetable = await this.timetableModel.findById(id);
+    if (!deletedTimetable) {
+      throw new NotFoundException(`Không tìm thấy thời khóa biểu với ID: ${id}`);
+    }
+    const { timetable_id: timetable_id } = deletedTimetable;
+    const classrooms = await this.classroomModel.find({ timetable_id }).lean();
+    if(classrooms.length > 0){
+      const classIds = classrooms.map(classroom => classroom.class_id); // Lấy danh sách class_id
+      await this.teachingLogModel.deleteMany({ class_id: { $in: classIds } });
+      await this.classroomModel.deleteMany({ timetable_id });
+    }
+    await this.timetableModel.findByIdAndDelete(id);
+    return { message: "Xóa thành công thời khóa biểu!", deletedTimetable };
+  } 
 }

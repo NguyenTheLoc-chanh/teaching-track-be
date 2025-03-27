@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestj
 import { TimetablesService } from './timetables.service';
 import { CreateTimetableDto } from './dto/create-timetable.dto';
 import { UpdateTimetableDto } from './dto/update-timetable.dto';
+import { Public } from '@/decorator/customize';
 
 @Controller('timetables')
 export class TimetablesController {
@@ -29,8 +30,13 @@ export class TimetablesController {
   }
 
   @Get()
-  findAll() {
-    return this.timetablesService.findAll();
+  @Public()
+  findAll(
+    @Query() query: string,
+    @Query("current") current: string,
+    @Query("pageSize") pageSize: string,
+  ) {
+    return this.timetablesService.findAll(query, +current, +pageSize);
   }
 
   @Get(':id')
@@ -44,7 +50,7 @@ export class TimetablesController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.timetablesService.remove(+id);
+  async remove(@Param('id') id: string) {
+    return this.timetablesService.remove(id);
   }
 }

@@ -21,7 +21,7 @@ export class LecturersService {
     if(filter.pageSize) delete filter.pageSize;
 
     if(!current) current = 1;
-    if(!pageSize) pageSize = 10;
+    if(!pageSize) pageSize = 30;
 
     const totalItems = (await this.lecturerModel.find(filter)).length;
     const totalPages = Math.ceil(totalItems / pageSize);

@@ -38,6 +38,7 @@
     "dayjs": "1.11.13",
     "dayjs-plugin-utc": "^0.1.2",
     "mongoose": "8.9.4",
+    "notistack": "^3.0.2",
     "passport": "0.7.0",
     "passport-jwt": "4.0.1",
     "passport-local": "1.0.0",

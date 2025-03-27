@@ -61,8 +61,22 @@ export class TeachingLogsController {
     return this.teachingLogsService.updateTeachingLogOld(_id);
   }
 
+  @Get('all-teachinglog-classid')
+  async findAllTeachingLogByClassID(@Query('class_id') rawclass_id: string){
+    const class_id = rawclass_id?.replace(/\?$/, "");
+    return this.teachingLogsService.findAllTeachingLogByClassID(class_id);
+  }
+
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.teachingLogsService.remove(+id);
+  }
+
+  @Patch(':id/update')
+  async updateTeaching(
+    @Param('id') _id: string,
+    @Body() updateData: {date: Date; session: string}
+  ) {
+    return this.teachingLogsService.updateTeachingLog(_id, updateData);
   }
 }

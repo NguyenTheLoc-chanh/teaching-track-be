@@ -5,12 +5,14 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Classroom, ClassroomSchema } from './schemas/classroom.schema';
 import { Timetable, TimetableSchema } from '../timetables/schemas/timetable.schema';
 import { Lecturer, LecturerSchema } from '../lecturers/schemas/lecturer.schema';
+import { Subject, SubjectSchema } from '../subjects/schemas/subject.schema';
 
 @Module({
   imports: [MongooseModule.forFeature([
         { name: Classroom.name, schema: ClassroomSchema },
         { name: Timetable.name, schema: TimetableSchema },
         { name: Lecturer.name, schema: LecturerSchema },
+        { name: Subject.name, schema: SubjectSchema },
   ])],
   controllers: [ClassroomsController],
   providers: [ClassroomsService],

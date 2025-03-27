@@ -93,7 +93,6 @@ export class SalariesService {
   
     for (const cls of classes) {
       const teachingLogs = await this.teachingLogModel.find({ class_id: cls.class_id }).lean();
-      console.log("TeachingLogs:", teachingLogs);
       if (!teachingLogs || teachingLogs.length === 0) {
         console.warn(`Không có teaching logs cho lớp ${cls.class_id}, bỏ qua lớp này.`);
         continue;

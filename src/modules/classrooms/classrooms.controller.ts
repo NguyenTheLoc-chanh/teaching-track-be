@@ -16,20 +16,19 @@ export class ClassroomsController {
   @UseGuards(JwtAuthGuard)
   @Get()
   async getTimeTableId(@Query('classId') classId: string) {
-    console.log("classId", classId);
     return this.classroomsService.findTimeTableId(classId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('getinfodetails')
   async findInfoDetailClass(@Query('classId') classId: string) {
-    console.log("classId", classId);
     return this.classroomsService.findInfoDetailClass(classId);
   }
 
-  @Get()
-  findAll() {
-    return this.classroomsService.findAll();
+  @Get('all-class')
+  findAll(@Query('timetable_id') rawTimetableId: string) {
+    const timetable_id = rawTimetableId?.replace(/\?$/, "");
+    return this.classroomsService.findAll(timetable_id);
   }
 
   @Get(':id')

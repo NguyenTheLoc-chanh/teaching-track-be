@@ -1,9 +1,9 @@
-import { IsNotEmpty, IsDateString } from "class-validator";
+import { IsNotEmpty, IsDateString, IsInt, Min } from "class-validator";
 
 export class CreateTeachingLogDto {
-    @IsNotEmpty({ message: "Mã bảng theo dõi giảng dạy không được để trống!" })
-    teaching_log_id: string;
-
+    @IsNotEmpty({ message: "Mã theo dõi không được để trống!" })
+    teaching_log_id: string; 
+    
     @IsNotEmpty({ message: "Mã lớp học không được để trống!" })
     class_id: string; // Mã lớp học (khóa ngoại)
 
@@ -13,7 +13,7 @@ export class CreateTeachingLogDto {
     @IsNotEmpty({ message: "Ngày diễn ra buổi học không được để trống!" })
     @IsDateString({}, { message: "Ngày diễn ra phải là ngày hợp lệ!" })
     date: Date; // Ngày diễn ra buổi học
-
-    @IsNotEmpty({ message: "Số tiết giảng dạy không được để trống!" })
-    lesson_count: number; // Số tiết giảng dạy
+    
+    @IsNotEmpty({ message: "Số tín chỉ không được để trống!" })
+    credit: number;
 }
